@@ -1,4 +1,4 @@
-def ft_garden_summary() -> None:
+def ft_garden_name() -> None:
     garden_name: str = input("Enter garden name: ")
     number_of_plants: int = int(input("Enter number of plants: "))
     print(f"Garden: {garden_name}")
