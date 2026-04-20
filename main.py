@@ -11,44 +11,8 @@ How it works:
 2. It calls your functions to test them
 3. If there's an error, it tells you what went wrong
 
-Your exercise files can be in the same folder as this main.py file,
-or in subfolders (the tester will search recursively).
+Make sure your exercise files are in the same folder as this main.py file!
 """
-
-import importlib.util
-import os
-import sys
-from pathlib import Path
-from typing import Optional
-
-
-_SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", "env", ".mypy_cache", ".pytest_cache"}
-
-
-def _find_exercise_path(exercise_file_name: str) -> Optional[Path]:
-    """Find `<exercise_file_name>.py` under the main.py folder (recursive)."""
-    root = Path(__file__).resolve().parent
-    target_file = f"{exercise_file_name}.py"
-
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
-        if target_file in filenames:
-            return (Path(dirpath) / target_file).resolve()
-
-    return None
-
-
-def _import_module_from_path(module_basename: str, module_path: Path):
-    """Import a python file by path and return the loaded module."""
-    module_name = f"_growing_code_{module_basename}"
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Could not import from path: {module_path}")
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def test_ft_exercise(exercise_file_name):
@@ -63,15 +27,11 @@ def test_ft_exercise(exercise_file_name):
     print(f"\n=== Testing {exercise_file_name} ===")
 
     try:
-        exercise_path = _find_exercise_path(exercise_file_name)
-        if exercise_path is None:
-            raise ImportError(
-                f"Could not find {exercise_file_name}.py under {Path(__file__).resolve().parent}"
-            )
-
-        # Import your exercise file from its path (supports subfolders)
-        ft_module = _import_module_from_path(exercise_file_name, exercise_path)
-        print(f"Loaded from: {exercise_path.relative_to(Path(__file__).resolve().parent)}")
+        # Import your exercise file
+        # This is like doing: import ft_plot_area
+        import sys
+        sys.path.append(".")
+        ft_module = __import__(exercise_file_name)
 
         # Get the function from your file
         # This is like doing: ft_plot_area.ft_plot_area
@@ -94,10 +54,12 @@ def test_ft_exercise(exercise_file_name):
             # Run your function normally (no parameters)
             ft_function()
 
-    except ImportError as error:
-        print(f"❌ Could not load {exercise_file_name}.py")
-        print(f"   {error}")
-        print("   Make sure your file exists in this folder or any subfolder.")
+    except ImportError:
+        print(f"❌ Could not find {exercise_file_name}.py")
+        print(
+            """   Make sure your file exists and is in the same
+            folder as main.py"""
+        )
 
     except AttributeError:
         print(f"❌ Could not find function {exercise_file_name}() in your file")
@@ -105,20 +67,19 @@ def test_ft_exercise(exercise_file_name):
 
     except TypeError as error:
         msg = str(error)
-        if "missing" in msg and "required positional argument" in msg:
-
-            print(f"❌ Function signature error: {error}")
-            print(
-                """   For exercise 7, make sure your
-                function takes parameters:"""
-            )
-            print(
-                f"   def {exercise_file_name}"
-                "(seed_type: str, quantity: int, unit: str) -> None:"
-            )
+        print(f"❌ Type error: {error}")
+        if exercise_file_name == "ft_seed_inventory":
+            if "missing" in msg and "required positional argument" in msg:
+                print(
+                    """   For exercise 7, make sure your
+                    function takes parameters:"""
+                )
+                print(
+                    f"   def {exercise_file_name}"
+                    "(seed_type: str, quantity: int, unit: str) -> None:"
+                )
         else:
-            print(f"❌ Type error: {error}")
-            print("   Check your function parameters and types")
+            print("   Your function should not take any parameters")
 
     except Exception as error:
         print(f"❌ Error running your function: {error}")
@@ -132,13 +93,13 @@ def main():
     print("\nWhich exercise would you like to test?")
     print()
     print("0 - ft_hello_garden     (Say hello to the garden community)")
-    print("1 - ft_plot_area        (Calculate garden plot area)")
-    print("2 - ft_harvest_total    (Add up harvest weights)")
-    print("3 - ft_plant_age        (Check if plant is ready)")
-    print("4 - ft_water_reminder   (Check if plants need water)")
-    print("5 - ft_count_harvest    (Count days to harvest)")
-    print("6 - ft_garden_summary   (Display garden info)")
-    print("7 - ft_seed_inventory    (Seed inventory with type hints)")
+    print("1 - ft_garden_name      (Display garden name)")
+    print("2 - ft_plot_area        (Calculate garden plot area)")
+    print("3 - ft_harvest_total    (Add up harvest weights)")
+    print("4 - ft_plant_age        (Check if plant is ready)")
+    print("5 - ft_water_reminder   (Check if plants need water)")
+    print("6 - ft_count_harvest    (Count days to harvest)")
+    print("7 - ft_seed_inventory   (Seed inventory with type hints)")
     print("a - test all exercises")
     print()
 
@@ -148,30 +109,30 @@ def main():
     if choice == "0":
         test_ft_exercise("ft_hello_garden")
     elif choice == "1":
-        test_ft_exercise("ft_plot_area")
+        test_ft_exercise("ft_garden_name")
     elif choice == "2":
-        test_ft_exercise("ft_harvest_total")
+        test_ft_exercise("ft_plot_area")
     elif choice == "3":
-        test_ft_exercise("ft_plant_age")
+        test_ft_exercise("ft_harvest_total")
     elif choice == "4":
-        test_ft_exercise("ft_water_reminder")
+        test_ft_exercise("ft_plant_age")
     elif choice == "5":
+        test_ft_exercise("ft_water_reminder")
+    elif choice == "6":
         test_ft_exercise("ft_count_harvest_iterative")
         test_ft_exercise("ft_count_harvest_recursive")
-    elif choice == "6":
-        test_ft_exercise("ft_garden_summary")
     elif choice == "7":
         test_ft_exercise("ft_seed_inventory")
     elif choice == "a":
         # Test all exercises one by one
         test_ft_exercise("ft_hello_garden")
+        test_ft_exercise("ft_garden_name")
         test_ft_exercise("ft_plot_area")
         test_ft_exercise("ft_harvest_total")
         test_ft_exercise("ft_plant_age")
         test_ft_exercise("ft_water_reminder")
         test_ft_exercise("ft_count_harvest_iterative")
         test_ft_exercise("ft_count_harvest_recursive")
-        test_ft_exercise("ft_garden_summary")
         test_ft_exercise("ft_seed_inventory")
     else:
         print("❌ Invalid choice! Please enter 0, 1, 2, 3, 4, 5, 6, 7, or a")
